@@ -19,16 +19,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 
-A PredictionIO engine is instantiated by a set of parameters, these parameters
-determines which algorithm is used as well as the parameter for the algorithm.
+A PredictionIO engine is instantiated by a set of parameters. These parameters
+determine which algorithm is used as well as the parameters for the algorithm.
 It naturally raises a question of how to choose the best set of parameters.  The
 evaluation module streamlines the process of tuning the engine to the best
-parameter set and deploy it.
+parameter set and deploying it.
 
 ## Evaluation Quick Start
 
 We assume you have run the [Recommendation Quick Start](/templates/recommendation/quickstart/)
-will skip the data collection / import instructions.
+and will skip the data collection and import instructions.
 
 ### Edit the AppName
 
@@ -49,13 +49,15 @@ object ParamsList extends EngineParamsGenerator {
 ### Build and run the evaluation
 
 To run evaluation, the command `pio eval` is used. It takes two
-mandatory parameter,
-1. the `Evaluation` object, it tells PredictionIO the engine and metric we use
-   for the evaluation; and
-2. the `EngineParamsGenerator`, it contains a list of engine params to test
+mandatory parameters:
+
+1. the `Evaluation` object, which tells PredictionIO the engine and metric we'll use
+   for the evaluation
+2. the `EngineParamsGenerator`, which contains a list of engine params to test
    against.
-The following command kickstarts the evaluation
-workflow for the classification template (replace "org.template" with your package).
+
+The following command kickstarts the evaluation workflow for the classification
+template (replace "org.template" with your package).
 
 ```
 $ pio build
@@ -115,8 +117,8 @@ Metrics:
 
 ```
 
-The console prints out the evaluation metric score of each engine params, and finally
-pretty print the optimal engine params. Amongst the 3 engine params we evaluate,
+The console prints out the evaluation metric score of each engine param, and finally
+pretty prints the optimal engine params. Amongst the 3 engine params we evaluate,
 the best Prediction@k has a score of ~0.1521.
 
 
@@ -133,7 +135,7 @@ data tuple.
 
 In the validation data, we construct a query for *each user*, and get a list of
 recommended items from the engine. It is vastly different from the
-classification tutorial, where there is a one-to-one corresponding between the
+classification tutorial, where there is a one-to-one correspondence between the
 training data point and the validation data point. In this evaluation,
 our unit of evaluation is *user*, we evaluate the quality of an engine
 using the known rating of a user.
@@ -147,21 +149,20 @@ recommendation engine:
 items which the user likes, we need to define what is meant by 'good'. In this
 example, we have two kinds of events: 'rate' and 'buy'. The 'rate' event is
 associated with a rating value which ranges between 1 to 4, and the 'buy'
-event is mapped to a rating of 4. When we
-implement the metric, we have to specify a rating threshold, only the rating
-above the threshold is considered 'good'.
+event is mapped to a rating of 4. When we implement the metric, we have to
+specify a rating threshold, only the rating above the threshold is considered 'good'.
 
-- The absence of complete rating. It is extremely unlikely that the training
-data contains rating for all user-item tuples. In contrast, of a system containing
+- The absence of a complete rating. It is extremely unlikely that the training
+data contains ratings for all user-item tuples. In contrast, in a system containing
 1000 items, a user may only have rated 20 of them, leaving 980 items unrated. There
-is no way for us to certainly tell if the user likes an unrated product.
+is no way for us to tell with any certainty if the user likes an unrated product.
 When we examine the evaluation result, it is important for us to keep in mind
 that the final metric is only an approximation of the actual result.
 
-- Recommendation affects user behavior. Suppose you are a e-commerce company and
-would like to use the recommendation engine to personalize the landing page,
+- Recommendation affects user behavior. Suppose you are an e-commerce company and
+would like to use the recommendation engine to personalize the landing page --
 the item you show in the landing page directly impacts what the user is going to
-purchase. This is different from weather prediction, whatever the weather
+purchase. This is different from a weather prediction, whatever the weather
 forecast engine predicts, tomorrow's weather won't be affected.  Therefore, when
 we conduct offline evaluation for recommendation engines, it is possible that
 the final user behavior is dramatically different from the evaluation result.
@@ -186,7 +187,7 @@ case class ActualResult(
 ### Implement Data Generate Method in DataSource
 
 In MyRecommendation/src/main/scala/***DataSource.scala***,
-the method `readEval` method reads, and selects, data from datastore
+the `readEval` method reads and selects data from the datastore
 and returns a sequence of (training, validation) data.
 
 ```scala
@@ -262,15 +263,15 @@ class DataSource(val dsp: DataSourceParams)
 }
 ```
 
-The evaluation data generate is controlled by two parameters
+The evaluation data generated is controlled by two parameters
 in the `DataSourceEvalParams`. The first parameter `kFold` is the number of
-fold we use for evaluation, the second parameter `queryNum` is used for
+folds we use for evaluation, the second parameter `queryNum` is used for
 query construction.
 
 
 The `getRating` method is factored out from the `readTraining` method as
-they both serve the same function of reading from data source and
-perform a user-item action into a rating (lines 22 - 40).
+they both serve the same function of reading from a data source and
+performing a user-item action into a rating (lines 22 - 40).
 
 The `readEval` method is a k-fold evaluation implementation.
 We annotate each rating in the raw data by an index (line 54), then
@@ -291,39 +292,39 @@ of the engine.
 ### Precision@K
 
 Precision@K measures the portion of *relevant* items amongst the first *k* items.
-Recommendation engine usually wants to make sure the top few items recommended
+A recommendation engine usually wants to make sure the top few items recommended
 are appealing to the user. Think about Google search, we usually give up after
 looking at the first and second result pages.
 
 ### Precision@K Parameters
 
-There are two questions associated with it.
+There are two questions associated with Precision@K.
 
 1. How do we define *relevant*?
 2. What is a good value of *k*?
 
-Before we answer these questions, we need to understand what constitute a good metric.
-It is like exams, if everyone get full scores, the exam fails its goal to
-determine what the candidates don't know; if everyone fails, the exam fails its goal
-to determine what the candidates know.
+Before we answer these questions, we need to understand what constitutes a good metric.
+It is like an exam, if everyone gets a good score, the exam fails its goal of
+determining what the candidates don't know; if everyone fails, the exam fails its goal
+of determining what the candidates know.
 A good metric should be able to distinguish the good from the bad.
 
-A way to define relevant is to use the notion of rating threshold. If the user
+A way to define relevant is to use the notion of a rating threshold. If the user
 rating for an item is higher than a certain threshold, we say it is relevant.
 However, without looking at the data, it is hard to pick a reasonable threshold.
-We can set the threshold be as high as the maximum rating of 4.0, but it may
+We can set the threshold to be as high as the maximum rating of 4.0, but it may
 severely limit the relevant set size, and the precision scores will be close to
 zero or undefined (precision is undefined if there is no relevant data).
-On the other hand, we can set the threshold be as low as the minimum rating, but
+On the other hand, we can set the threshold to be as low as the minimum rating, but
 it makes the precision metric uninformative as well since all scores will be close
 to 1.
-Similar argument applies to picking a good value of *k* too.
+Similar arguments apply to picking a good value of *k*, too.
 
 A method to choose a good parameter is *not* to choose one, but instead test
 out *a whole sprectrum of parameters*. If an engine variant is good, it should
-robustly perform well across different metric parameters.
+robustly perform well across different parameter metrics.
 The evaluation module supports multiple metrics. The following code
-snippets demonstrates a sample usage.
+snippet demonstrates a sample usage.
 
 ```scala
 object ComprehensiveRecommendationEvaluation extends Evaluation {
@@ -341,16 +342,16 @@ object ComprehensiveRecommendationEvaluation extends Evaluation {
 }
 ```
 
-We have two types of `Metric`s.
+We have two types of `Metrics`.
 
-- `PositiveCount` is a helper metrics that returns the average
+- `PositiveCount` is a helper metric that returns the average
 number of positive samples for a specific rating threshold, therefore we get some
 idea about the *demographic* of the data. If `PositiveCount` is too low or too
-high for certain threshold, we know that it should not be used.
+high for a certain threshold, we know that it should not be used.
 We have three thresholds (line 2), and three instances of
 `PositiveCount` metric are instantiated (line 10), one for each threshold.
 
-- `Precision@K` is the actual metrics we use.
+- `Precision@K` is the actual metric we use.
 We have two lists of parameters (lines 2 to 3): `ratingThreshold` defines what rating is good,
 and `k` defines how many items we evaluate in the `PredictedResult`.
 We generate a list of all combinations (line 11).
@@ -358,7 +359,7 @@ We generate a list of all combinations (line 11).
 These metrics are specified as `otherMetrics` (lines 9 to 11), they
 will be calculated and generated on the evaluation UI.
 
-To run this evaluation, you can:
+To run this evaluation, you can execute:
 
 ```
 $ pio eval org.template.ComprehensiveRecommendationEvaluation \
